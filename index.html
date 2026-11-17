@@ -10,238 +10,238 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="app-wrapper">
-    <div class="device-frame">
-      <!-- Cabeçalho -->
-      <header class="top-header">
+  <div class="app-shell">
+    <!-- Cabeçalho limpo sem bordas externas -->
+    <header class="top-header">
+      <div class="header-inner">
         <div class="logo-wrap" onclick="navigateTo('home')">
           <span class="logo-text">Badtz-kai</span>
           <span class="logo-sub">Leitura Brasileira</span>
         </div>
-        <nav class="desktop-nav" aria-label="Navegação desktop">
-          <button class="nav-pill active" data-target="home" onclick="navigateTo('home')">Início</button>
-          <button class="nav-pill" data-target="cart" onclick="navigateTo('cart')">
-            Cestinha <span class="badge-count" id="desktop-cart-count">3</span>
+      </div>
+    </header>
+
+    <!-- Conteúdo Principal -->
+    <main class="main-content">
+      <!-- ================= TELA 1: INÍCIO ================= -->
+      <section id="view-home" class="view active">
+        <div class="promo-cards">
+          <button class="promo-card" id="filter-50off" onclick="toggleFilter('50off')">
+            <span class="serif-big">50%<br />OFF</span>
           </button>
-          <button class="nav-pill" data-target="settings" onclick="navigateTo('settings')">Configurações</button>
-          <button class="nav-pill" data-target="profile" onclick="navigateTo('profile')">Perfil</button>
-        </nav>
-      </header>
+          <button class="promo-card" onclick="openInfoModal()">
+            <span class="serif-mid">Info</span>
+          </button>
+          <button class="promo-card" id="filter-new" onclick="toggleFilter('new')">
+            <span class="serif-mid">NEW<br />veja</span>
+          </button>
+        </div>
 
-      <!-- Conteúdo Principal -->
-      <main class="main-content">
-        <!-- ================= TELA 1: INÍCIO ================= -->
-        <section id="view-home" class="view active">
-          <div class="promo-cards">
-            <button class="promo-card" id="filter-50off" onclick="toggleFilter('50off')">
-              <span class="serif-big">50%<br />OFF</span>
-            </button>
-            <button class="promo-card" onclick="openInfoModal()">
-              <span class="serif-mid">Info</span>
-            </button>
-            <button class="promo-card" id="filter-new" onclick="toggleFilter('new')">
-              <span class="serif-mid">NEW<br />veja</span>
-            </button>
-          </div>
+        <div class="search-bar-wrap">
+          <input
+            type="text"
+            id="search-input"
+            class="search-input"
+            placeholder="Buscar livros, autores, lugares perto..."
+            oninput="renderBooks()"
+          />
+          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <circle cx="11" cy="11" r="7"></circle>
+            <line x1="20" y1="20" x2="16.2" y2="16.2"></line>
+          </svg>
+        </div>
 
-          <div class="search-bar-wrap">
-            <input
-              type="text"
-              id="search-input"
-              class="search-input"
-              placeholder="Buscar livros, autores, lugares perto..."
-              oninput="renderBooks()"
-            />
-            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-              <circle cx="11" cy="11" r="7"></circle>
-              <line x1="20" y1="20" x2="16.2" y2="16.2"></line>
+        <div class="filter-status" id="filter-status" style="display: none;">
+          <span id="filter-label">Filtro ativo</span>
+          <button onclick="clearFilters()">Limpar</button>
+        </div>
+
+        <div class="books-showcase-box">
+          <div class="books-grid" id="books-grid"></div>
+        </div>
+      </section>
+
+      <!-- ================= TELA EXCLUSIVA DO LIVRO (ESTILO SHOPEE / AMAZON) ================= -->
+      <section id="view-product" class="view">
+        <div id="product-detail-container"></div>
+      </section>
+
+      <!-- ================= TELA 2: CESTINHA ================= -->
+      <section id="view-cart" class="view">
+        <div class="cart-tabs-pill">
+          <button class="cart-tab active" data-tab="cestinha" onclick="switchCartTab('cestinha')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M5 10h14l-1.5 9h-11z"></path>
+              <path d="M9 10L11 5M15 10L13 5"></path>
+              <line x1="8" y1="13" x2="8" y2="16"></line>
+              <line x1="12" y1="13" x2="12" y2="16"></line>
+              <line x1="16" y1="13" x2="16" y2="16"></line>
             </svg>
-          </div>
+            <span>cestinha</span>
+          </button>
 
-          <div class="filter-status" id="filter-status" style="display: none;">
-            <span id="filter-label">Filtro ativo</span>
-            <button onclick="clearFilters()">Limpar</button>
-          </div>
-
-          <div class="books-showcase-box">
-            <div class="books-grid" id="books-grid"></div>
-          </div>
-        </section>
-
-        <!-- ================= TELA 2: CESTINHA ================= -->
-        <section id="view-cart" class="view">
-          <div class="cart-tabs-pill">
-            <button class="cart-tab active" data-tab="cestinha" onclick="switchCartTab('cestinha')">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M5 10h14l-1.5 9h-11z"></path>
-                <path d="M9 10L11 5M15 10L13 5"></path>
-                <line x1="8" y1="13" x2="8" y2="16"></line>
-                <line x1="12" y1="13" x2="12" y2="16"></line>
-                <line x1="16" y1="13" x2="16" y2="16"></line>
-              </svg>
-              <span>cestinha</span>
-            </button>
-
-            <button class="cart-tab" data-tab="enviando" onclick="switchCartTab('enviando')">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="2" y="7" width="13" height="10" rx="1"></rect>
-                <path d="M15 10h4l3 3v4h-7z"></path>
-                <circle cx="6.5" cy="18.5" r="2"></circle>
-                <circle cx="18.5" cy="18.5" r="2"></circle>
-              </svg>
-              <span>enviando</span>
-            </button>
-
-            <button class="cart-tab" data-tab="compras" onclick="switchCartTab('compras')">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M6 8h12l1 12H5z"></path>
-                <path d="M9 8V6a3 3 0 0 1 6 0v2"></path>
-              </svg>
-              <span>compras</span>
-            </button>
-
-            <button class="cart-tab" data-tab="reembolso" onclick="switchCartTab('reembolso')">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="8" r="4"></circle>
-                <path d="M4 17c2-1 4-1 6 0l4 1c2 0 4-1 6-2"></path>
-              </svg>
-              <span>reembolso</span>
-            </button>
-          </div>
-
-          <div id="cart-tab-content"></div>
-        </section>
-
-        <!-- ================= TELA 3: CONFIGURAÇÕES ================= -->
-        <section id="view-settings" class="view">
-          <div class="search-bar-wrap">
-            <input
-              type="text"
-              id="settings-search"
-              class="search-input"
-              placeholder="buscar configuração"
-              oninput="filterSettings()"
-            />
-            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-              <circle cx="11" cy="11" r="7"></circle>
-              <line x1="20" y1="20" x2="16.2" y2="16.2"></line>
+          <button class="cart-tab" data-tab="enviando" onclick="switchCartTab('enviando')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="7" width="13" height="10" rx="1"></rect>
+              <path d="M15 10h4l3 3v4h-7z"></path>
+              <circle cx="6.5" cy="18.5" r="2"></circle>
+              <circle cx="18.5" cy="18.5" r="2"></circle>
             </svg>
+            <span>enviando</span>
+          </button>
+
+          <button class="cart-tab" data-tab="compras" onclick="switchCartTab('compras')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M6 8h12l1 12H5z"></path>
+              <path d="M9 8V6a3 3 0 0 1 6 0v2"></path>
+            </svg>
+            <span>compras</span>
+          </button>
+
+          <button class="cart-tab" data-tab="reembolso" onclick="switchCartTab('reembolso')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="8" r="4"></circle>
+              <path d="M4 17c2-1 4-1 6 0l4 1c2 0 4-1 6-2"></path>
+            </svg>
+            <span>reembolso</span>
+          </button>
+        </div>
+
+        <div id="cart-tab-content"></div>
+      </section>
+
+      <!-- ================= TELA 3: CONFIGURAÇÕES ================= -->
+      <section id="view-settings" class="view">
+        <div class="search-bar-wrap">
+          <input
+            type="text"
+            id="settings-search"
+            class="search-input"
+            placeholder="buscar configuração"
+            oninput="filterSettings()"
+          />
+          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <circle cx="11" cy="11" r="7"></circle>
+            <line x1="20" y1="20" x2="16.2" y2="16.2"></line>
+          </svg>
+        </div>
+
+        <div class="settings-list" id="settings-list">
+          <div class="setting-item" data-keywords="preferencias tema escuro claro modo">
+            <div class="setting-left">
+              <span class="setting-icon">⚙️</span>
+              <div>
+                <strong>preferências</strong>
+                <small>Tema escuro, notificações e idioma</small>
+              </div>
+            </div>
+            <label class="switch" title="Alternar tema escuro">
+              <input type="checkbox" id="dark-mode-toggle" onchange="toggleDarkMode()" />
+              <span class="slider"></span>
+            </label>
           </div>
 
-          <div class="settings-list" id="settings-list">
-            <div class="setting-item" data-keywords="preferencias tema escuro claro modo">
-              <div class="setting-left">
-                <span class="setting-icon">⚙️</span>
-                <div>
-                  <strong>preferências</strong>
-                  <small>Tema escuro, notificações e idioma</small>
-                </div>
+          <div class="setting-item clickable" data-keywords="perfil endereco email telefone nome" onclick="openSettingPanel('perfil')">
+            <div class="setting-left">
+              <span class="setting-icon">👤</span>
+              <div>
+                <strong>configuração do perfil</strong>
+                <small>Mudar endereço, e-mail, telefone e pronome</small>
               </div>
-              <label class="switch" title="Alternar tema escuro">
-                <input type="checkbox" id="dark-mode-toggle" onchange="toggleDarkMode()" />
-                <span class="slider"></span>
-              </label>
             </div>
-
-            <div class="setting-item clickable" data-keywords="perfil endereco email telefone nome" onclick="openSettingPanel('perfil')">
-              <div class="setting-left">
-                <span class="setting-icon">👤</span>
-                <div>
-                  <strong>configuração do perfil</strong>
-                  <small>Mudar endereço, e-mail, telefone e pronome</small>
-                </div>
-              </div>
-              <span class="arrow">›</span>
-            </div>
-
-            <div class="setting-item clickable" data-keywords="cartao credito pagamento pix contas" onclick="openSettingPanel('cartoes')">
-              <div class="setting-left">
-                <span class="setting-icon">💳</span>
-                <div>
-                  <strong>contas de cartão</strong>
-                  <small>Guardar cartões de crédito ou dados para pagamentos rápidos</small>
-                </div>
-              </div>
-              <span class="arrow">›</span>
-            </div>
-
-            <div class="setting-item clickable" data-keywords="privacidade visibilidade livros avaliacoes" onclick="openSettingPanel('privacidade')">
-              <div class="setting-left">
-                <span class="setting-icon">🔒</span>
-                <div>
-                  <strong>privacidade</strong>
-                  <small>Definir quem pode ver sua lista de livros à venda ou avaliações</small>
-                </div>
-              </div>
-              <span class="arrow">›</span>
-            </div>
+            <span class="arrow">›</span>
           </div>
 
-          <div id="setting-detail-panel" class="setting-detail-panel" style="display: none;"></div>
-        </section>
-
-        <!-- ================= TELA 4: PERFIL ================= -->
-        <section id="view-profile" class="view">
-          <div class="profile-header">
-            <div class="avatar-col">
-              <div class="avatar-circle" title="Leitora Badtz-kai">
-                <svg viewBox="0 0 120 120" width="100%" height="100%">
-                  <rect width="120" height="120" fill="#d9cbb8" />
-                  <circle cx="60" cy="48" r="24" fill="#f3d2b3" />
-                  <path d="M32 45 C32 22, 88 22, 88 45 L92 85 L28 85 Z" fill="#1e1b18" />
-                  <circle cx="60" cy="48" r="19" fill="#f3d2b3" />
-                  <path d="M36 36 Q60 22 84 36 L88 28 Q60 12 32 28 Z" fill="#3a332c" />
-                  <line x1="48" y1="45" x2="55" y2="45" stroke="#1e1b18" stroke-width="2.5" stroke-linecap="round" />
-                  <line x1="65" y1="45" x2="72" y2="45" stroke="#1e1b18" stroke-width="2.5" stroke-linecap="round" />
-                  <path d="M56 56 Q60 59 64 56" fill="none" stroke="#8c584c" stroke-width="2" stroke-linecap="round" />
-                  <rect x="34" y="66" width="52" height="36" rx="3" fill="#c93b4b" stroke="#1e1b18" stroke-width="2" />
-                  <text x="60" y="88" font-size="11" font-weight="bold" fill="#fff" text-anchor="middle" font-family="sans-serif">NANA</text>
-                </svg>
+          <div class="setting-item clickable" data-keywords="cartao credito pagamento pix contas" onclick="openSettingPanel('cartoes')">
+            <div class="setting-left">
+              <span class="setting-icon">💳</span>
+              <div>
+                <strong>contas de cartão</strong>
+                <small>Guardar cartões de crédito ou dados para pagamentos rápidos</small>
               </div>
-              <button class="pronoun-pill" id="profile-pronoun" onclick="editProfileField('pronoun')">ela/dela</button>
             </div>
-
-            <div class="profile-info-pills">
-              <button class="blue-pill-btn" onclick="editProfileField('name')">
-                <span class="pill-label">nome</span>
-                <span class="pill-value" id="profile-name">Camila N.</span>
-              </button>
-              <button class="blue-pill-btn" onclick="editProfileField('email')">
-                <span class="pill-label">email</span>
-                <span class="pill-value" id="profile-email">camila@leitura.br</span>
-              </button>
-            </div>
+            <span class="arrow">›</span>
           </div>
 
-          <div class="profile-section">
-            <div class="section-title-row">
-              <h3>livros</h3>
-              <button class="small-action-btn" onclick="openAddBookModal()">+ Anunciar / Doar</button>
+          <div class="setting-item clickable" data-keywords="privacidade visibilidade livros avaliacoes" onclick="openSettingPanel('privacidade')">
+            <div class="setting-left">
+              <span class="setting-icon">🔒</span>
+              <div>
+                <strong>privacidade</strong>
+                <small>Definir quem pode ver sua lista de livros à venda ou avaliações</small>
+              </div>
             </div>
-            <div class="rounded-royal-box">
-              <div class="user-books-row" id="user-selling-books"></div>
+            <span class="arrow">›</span>
+          </div>
+        </div>
+
+        <div id="setting-detail-panel" class="setting-detail-panel" style="display: none;"></div>
+      </section>
+
+      <!-- ================= TELA 4: PERFIL ================= -->
+      <section id="view-profile" class="view">
+        <div class="profile-header">
+          <div class="avatar-col">
+            <div class="avatar-circle" title="Leitora Badtz-kai">
+              <svg viewBox="0 0 120 120" width="100%" height="100%">
+                <rect width="120" height="120" fill="#d9cbb8" />
+                <circle cx="60" cy="48" r="24" fill="#f3d2b3" />
+                <path d="M32 45 C32 22, 88 22, 88 45 L92 85 L28 85 Z" fill="#1e1b18" />
+                <circle cx="60" cy="48" r="19" fill="#f3d2b3" />
+                <path d="M36 36 Q60 22 84 36 L88 28 Q60 12 32 28 Z" fill="#3a332c" />
+                <line x1="48" y1="45" x2="55" y2="45" stroke="#1e1b18" stroke-width="2.5" stroke-linecap="round" />
+                <line x1="65" y1="45" x2="72" y2="45" stroke="#1e1b18" stroke-width="2.5" stroke-linecap="round" />
+                <path d="M56 56 Q60 59 64 56" fill="none" stroke="#8c584c" stroke-width="2" stroke-linecap="round" />
+                <rect x="34" y="66" width="52" height="36" rx="3" fill="#c93b4b" stroke="#1e1b18" stroke-width="2" />
+                <text x="60" y="88" font-size="11" font-weight="bold" fill="#fff" text-anchor="middle" font-family="sans-serif">NANA</text>
+              </svg>
             </div>
+            <button class="pronoun-pill" id="profile-pronoun" onclick="editProfileField('pronoun')">ela/dela</button>
           </div>
 
-          <div class="profile-section">
-            <div class="section-title-row">
-              <h3>resenha</h3>
-              <button class="small-action-btn" onclick="openReviewModal()">+ Nova resenha</button>
-            </div>
-            <div class="rounded-royal-box" id="user-reviews-box"></div>
+          <div class="profile-info-pills">
+            <button class="blue-pill-btn" onclick="editProfileField('name')">
+              <span class="pill-label">nome</span>
+              <span class="pill-value" id="profile-name">Camila N.</span>
+            </button>
+            <button class="blue-pill-btn" onclick="editProfileField('email')">
+              <span class="pill-label">email</span>
+              <span class="pill-value" id="profile-email">camila@leitura.br</span>
+            </button>
           </div>
-        </section>
-      </main>
+        </div>
 
-      <!-- Barra de Navegação Inferior (Mobile) -->
-      <footer class="bottom-nav">
-        <button class="bottom-btn active" data-target="home" onclick="navigateTo('home')" aria-label="Início">
+        <div class="profile-section">
+          <div class="section-title-row">
+            <h3>livros</h3>
+            <button class="small-action-btn" onclick="openAddBookModal()">+ Anunciar / Doar</button>
+          </div>
+          <div class="rounded-royal-box">
+            <div class="user-books-row" id="user-selling-books"></div>
+          </div>
+        </div>
+
+        <div class="profile-section">
+          <div class="section-title-row">
+            <h3>resenha</h3>
+            <button class="small-action-btn" onclick="openReviewModal()">+ Nova resenha</button>
+          </div>
+          <div class="rounded-royal-box" id="user-reviews-box"></div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Rodapé Unificado (Celular e Computador) -->
+    <footer class="bottom-nav" aria-label="Navegação principal">
+      <div class="bottom-nav-inner">
+        <button class="footer-nav-btn active" data-target="home" onclick="navigateTo('home')" aria-label="Início">
           <svg viewBox="0 0 24 24" fill="currentColor">
             <path d="M12 3L2 12h3v8h5v-5h4v5h5v-8h3L12 3z" />
           </svg>
+          <span class="footer-label">Início</span>
         </button>
 
-        <button class="bottom-btn" data-target="cart" onclick="navigateTo('cart')" aria-label="Cestinha">
+        <button class="footer-nav-btn" data-target="cart" onclick="navigateTo('cart')" aria-label="Cestinha">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
             <path d="M4 10h16l-1.8 9H5.8L4 10z" />
             <path d="M8.5 10L11 4.5M15.5 10L13 4.5" />
@@ -249,31 +249,32 @@
             <line x1="12" y1="13" x2="12" y2="16.5" />
             <line x1="16" y1="13" x2="16" y2="16.5" />
           </svg>
-          <span class="mobile-badge" id="mobile-cart-count">3</span>
+          <span class="footer-label">Cestinha</span>
+          <span class="nav-badge" id="cart-count-badge">3</span>
         </button>
 
-        <div class="nav-spacer"></div>
-
-        <button class="bottom-btn" data-target="settings" onclick="navigateTo('settings')" aria-label="Configurações">
+        <button class="footer-nav-btn" data-target="settings" onclick="navigateTo('settings')" aria-label="Configurações">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="12" cy="12" r="3" />
             <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c.26.604.852.997 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
           </svg>
+          <span class="footer-label">Configurações</span>
         </button>
 
-        <button class="bottom-btn" data-target="profile" onclick="navigateTo('profile')" aria-label="Perfil">
+        <button class="footer-nav-btn" data-target="profile" onclick="navigateTo('profile')" aria-label="Perfil">
           <svg viewBox="0 0 24 24" fill="currentColor">
             <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2" />
             <circle cx="12" cy="9" r="3.2" />
             <path d="M6.5 18.5c1.3-2.5 3.3-3.7 5.5-3.7s4.2 1.2 5.5 3.7" />
           </svg>
+          <span class="footer-label">Perfil</span>
         </button>
-      </footer>
-    </div>
+      </div>
+    </footer>
   </div>
 
   <!-- Modal -->
-  <div class="modal-backdrop" id="modal-backdrop" onclick="closeModal(event)">
+  <div class="modal-backdrop" id="modal-backdrop" onclick="closeModal()">
     <div class="modal-card" id="modal-content" onclick="event.stopPropagation()"></div>
   </div>
 
