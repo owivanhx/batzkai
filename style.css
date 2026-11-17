@@ -438,25 +438,46 @@ body.dark-mode .small-action-btn { color: #fff; }
 
 /* Rodapé Unificado */
 .bottom-nav {
-  position: fixed; bottom: 0; left: 0; right: 0; background: var(--royal); height: 66px; z-index: 30;
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: var(--royal);
+  height: 72px; z-index: 30;
+  border-radius: 24px 24px 0 0;
   box-shadow: 0 -4px 16px rgba(17, 13, 115, 0.18);
 }
-.bottom-nav-inner { max-width: 720px; height: 100%; margin: 0 auto; display: flex; align-items: center; justify-content: space-around; padding: 0 12px; }
-.footer-nav-btn {
-  background: transparent; border: none; color: rgba(255,255,255,0.78); padding: 6px 14px;
-  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
-  cursor: pointer; position: relative; border-radius: 999px; font-family: inherit; transition: all 0.2s;
+.bottom-nav-inner {
+  max-width: 720px; height: 100%; margin: 0 auto;
+  display: flex; align-items: center; justify-content: center;
+  gap: 8px; padding: 0 12px;
+  overflow-x: auto; scrollbar-width: none;
 }
-.footer-nav-btn svg { width: 23px; height: 23px; }
-.footer-label { font-size: 0.72rem; font-weight: 800; }
-@media (min-width: 768px) {
-  .footer-nav-btn { flex-direction: row; gap: 8px; padding: 9px 20px; }
-  .footer-label { font-size: 0.9rem; }
-}
-.footer-nav-btn:hover, .footer-nav-btn.active { background: #ffffff; color: var(--royal); }
+.bottom-nav-inner::-webkit-scrollbar { display: none; }
 
-.nav-badge { background: #ff4d6d; color: #fff; font-size: 0.66rem; font-weight: 800; padding: 1px 6px; border-radius: 999px; }
-@media (max-width: 767px) { .nav-badge { position: absolute; top: 2px; right: 6px; } }
+.footer-nav-btn {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  color: #ffffff;
+  padding: 9px 14px;
+  border-radius: 999px;
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: inherit; font-size: 0.82rem; font-weight: 800;
+  white-space: nowrap; cursor: pointer;
+  transition: all 0.2s;
+}
+.footer-nav-btn:hover { background: rgba(255, 255, 255, 0.14); }
+.footer-nav-btn.active {
+  background: #ffffff; color: var(--royal);
+  border-color: #ffffff;
+}
+
+.nav-badge {
+  background: #ff4d6d; color: #fff;
+  font-size: 0.68rem; font-weight: 800;
+  padding: 1px 7px; border-radius: 999px;
+}
+
+@media (min-width: 768px) {
+  .footer-nav-btn { padding: 10px 22px; font-size: 0.92rem; }
+}
 
 /* Modals & Toast */
 .modal-backdrop { position: fixed; inset: 0; background: rgba(10,12,30,0.6); display: none; align-items: center; justify-content: center; padding: 18px; z-index: 50; }
@@ -470,7 +491,7 @@ body.dark-mode .small-action-btn { color: #fff; }
 }
 
 .toast {
-  position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(20px);
+  position: fixed; bottom: 88px; left: 50%; transform: translateX(-50%) translateY(20px);
   background: var(--royal-dark); color: #fff; padding: 10px 20px; border-radius: 999px;
   font-weight: 700; font-size: 0.88rem; opacity: 0; pointer-events: none; transition: all 0.25s ease; z-index: 60; box-shadow: 0 6px 18px rgba(0,0,0,0.25);
 }
