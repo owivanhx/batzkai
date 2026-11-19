@@ -58,3 +58,18 @@ label{display:block;margin:10px 0 4px;font-weight:700}
 input,textarea{width:100%;padding:9px;border:2px solid var(--bd);border-radius:12px;background:var(--bg);color:var(--ink);font:inherit}
 .toast{position:fixed;left:50%;bottom:calc(86px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--royal-dark);color:#fff;padding:9px 16px;border-radius:99px;z-index:20;font-size:.9rem}
 .toast[hidden],[hidden]{display:none}
+
+/* ---- Fotos e cesta azul ---- */
+:root{--mesh:rgba(26,21,158,.28)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--mesh:rgba(91,99,245,.45)}}
+:root[data-theme="dark"]{--mesh:rgba(91,99,245,.45)}
+.cover{height:150px;overflow:hidden;position:relative}
+.cover.ph{padding:0}
+.cover img,.bm img,.av img{width:100%;height:100%;object-fit:cover;display:block}
+.av{width:84px;height:84px;overflow:hidden;flex:none}
+.basket{position:relative;margin:56px 4px 18px}
+.basket-handle{position:absolute;left:50%;top:-44px;width:55%;height:90px;transform:translateX(-50%);border:9px solid var(--bd);border-bottom:0;border-radius:70px 70px 0 0}
+.basket-books{position:relative;z-index:1;display:flex;flex-wrap:wrap;justify-content:center;align-items:flex-end;gap:8px;padding:0 16px;margin-bottom:-58px;min-height:80px}
+.bm{width:84px;aspect-ratio:2/3;flex:none;border-radius:6px;padding:6px 5px;font:700 .72rem/1.15 "Playfair Display",Georgia,serif;text-align:center;color:#141414;box-shadow:0 4px 10px rgba(0,0,0,.25);overflow:hidden;position:relative}
+.bm.ph{padding:0}
+.basket-front{position:relative;z-index:2;height:104px;border:7px solid var(--bd);border-top-width:12px;border-radius:12px 12px 46px 46px;background-color:var(--surface);background-image:linear-gradient(to right,var(--mesh) 3px,transparent 3px),linear-gradient(to bottom,var(--mesh) 3px,transparent 3px);background-size:36px 32px}
