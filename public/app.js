@@ -9,6 +9,15 @@ function btn(txt,cls,fn){var b=el("button","btn "+(cls||""),txt);b.type="button"
 function go(v){st.view=v;render()}
 function money(c){return brl(c/100)}
 function msg(e){return (e.details&&e.details[0])||e.message}
+/* ---------- Fotos: o navegador reduz para JPEG antes de enviar ---------- */
+function toJpeg(file,max){return new Promise(function(res,rej){var img=new Image(),u=URL.createObjectURL(file);
+ img.onload=function(){var s=Math.min(1,max/Math.max(img.width,img.height)),c=document.createElement("canvas");c.width=Math.round(img.width*s);c.height=Math.round(img.height*s);
+  c.getContext("2d").drawImage(img,0,0,c.width,c.height);URL.revokeObjectURL(u);c.toBlob(function(b){b?res(b):rej(new Error("Não foi possível ler a imagem."))},"image/jpeg",.82)};
+ img.onerror=function(){rej(new Error("Escolha um arquivo de imagem (JPG, PNG ou WebP)."))};img.src=u})}
+function upload(path,file,max){return toJpeg(file,max).then(function(b){return fetch("/api"+path,{method:"PUT",credentials:"same-origin",headers:{"Content-Type":"image/jpeg","X-Requested-With":"feirao"},body:b})})
+ .then(function(r){if(r.ok)return r.json();return r.json().catch(function(){return{}}).then(function(d){throw new Error(d.error||"Não foi possível enviar a foto.")})})}
+function pickImage(cb){var p=$("pick");p.onchange=function(){var f=p.files[0];p.value="";if(f)cb(f)};p.click()}
+function photo(b){var i=document.createElement("img");i.src="/api/books/"+b.id+"/photo?v="+encodeURIComponent(b.photo_at);i.alt="Capa de "+b.title;i.loading="lazy";return i}
 
 /* ---------- API ---------- */
 function api(path,method,body){
@@ -87,10 +96,12 @@ var anunciar=need(function(){dialog("Anunciar ou doar livro",[
  ["aT","Título","input",{maxlength:80}],["aA","Autor","input",{maxlength:60}],
  ["aC","Categoria","select",{options:CATS.map(function(c){return[c,c]})}],
  ["aK","Estado do livro","select",{options:[["Como novo","Como novo"],["Bom estado","Bom estado"],["Com marcas","Com marcas"]],val:"Bom estado"}],
- ["aP","Preço em R$ (0 para doar)","input",{type:"number",min:0,step:"0.01"}]],function(){
+ ["aP","Preço em R$ (0 para doar)","input",{type:"number",min:0,step:"0.01"}],
+ ["aF","Foto do livro (opcional)","input",{type:"file",accept:"image/*"}]],function(){
  var t=v("aT"),p=parseFloat($("aP").value);
  if(t.length<2)return"Digite o título do livro.";if(!(p>=0))return"Digite um preço (0 para doação).";
  return api("/books","POST",{title:t,author:v("aA"),category:$("aC").value,book_condition:$("aK").value,price_cents:Math.round(p*100)})
+  .then(function(r){var f=$("aF").files[0];return f?upload("/books/"+r.id+"/photo",f,700).catch(function(e){toast("Livro publicado, mas a foto falhou: "+msg(e))}):null})
   .then(refresh).then(function(){toast(p?"Livro publicado":"Doação publicada");return ""}).catch(msg)})});
 var resenha=need(function(){dialog("Nova resenha",[["rT","Livro","input",{maxlength:80}],["rX","Sua opinião","textarea",{rows:4,maxlength:500}]],function(){
  return api("/reviews","POST",{book_title:v("rT"),body:v("rX")}).then(loadReviews).then(render).then(function(){toast("Resenha publicada");return ""}).catch(msg)})});
@@ -121,7 +132,7 @@ function home(m){
  var g=el("div","grid");
  if(!st.books.length)g.appendChild(el("div","empty","Nenhum livro por aqui ainda. Que tal anunciar o primeiro no seu perfil?"));
  st.books.forEach(function(b){
-  var d=el("article","book"),cv=el("div","cover",b.title);cv.style.background=COLS[b.id%COLS.length];
+  var d=el("article","book"),cv=el("div","cover"+(b.photo_at?" ph":""),b.photo_at?null:b.title);cv.style.background=COLS[b.id%COLS.length];if(b.photo_at)cv.appendChild(photo(b));
   var k=el("div","bk");k.appendChild(el("h3",null,b.title));k.appendChild(el("div","m",b.author||"Autor não informado"));k.appendChild(el("div","m",b.book_condition+" · "+b.seller));
   k.appendChild(el("div","pr"+(b.price_cents?"":" free"),money(b.price_cents)));
   var inCart=st.cart.some(function(x){return x.id===b.id}),mine=st.user&&b.seller_id===st.user.id;
@@ -131,6 +142,12 @@ function home(m){
   bt.disabled=!!(mine||inCart);k.appendChild(bt);d.appendChild(cv);d.appendChild(k);g.appendChild(d)});
  m.appendChild(g);
 }
+function basket(){
+ var w=el("div","basket");w.setAttribute("aria-hidden","true");w.appendChild(el("div","basket-handle"));
+ var bk=el("div","basket-books");
+ st.cart.forEach(function(b){var c=el("div","bm"+(b.photo_at?" ph":""),b.photo_at?null:b.title);c.style.background=COLS[b.id%COLS.length];
+  c.style.transform="rotate("+(((b.id%5)-2)*2)+"deg)";if(b.photo_at)c.appendChild(photo(b));bk.appendChild(c)});
+ w.appendChild(bk);w.appendChild(el("div","basket-front"));return w}
 function orderCard(o,btns){var r=el("div","row"),l=el("div");l.appendChild(el("div","t","Pedido #"+o.id+" · "+money(o.total_cents)));
  l.appendChild(el("div","m",o.items.map(function(i){return i.title}).join(", ")));r.appendChild(l);
  var a=el("div");btns.forEach(function(b){a.appendChild(b)});r.appendChild(a);return r}
@@ -138,6 +155,7 @@ function cesta(m){
  var tabs=el("div","tabs");[["cesta","cestinha"],["ship","enviando"],["bought","compras"],["refund","reembolso"]].forEach(function(t){var b=el("button","chip",t[1]);b.type="button";b.setAttribute("aria-pressed",String(st.tab===t[0]));b.onclick=function(){st.tab=t[0];render()};tabs.appendChild(b)});m.appendChild(tabs);
  if(!st.user){m.appendChild(el("p","m","Entre na sua conta para ver a cestinha e os pedidos."));m.appendChild(btn("Entrar","y",function(){authDlg("login")}));return}
  if(st.tab==="cesta"){
+  m.appendChild(basket());
   var sum=0;
   if(!st.cart.length)m.appendChild(el("p","m","Sua cestinha está vazia. Escolha um livro no início."));
   st.cart.forEach(function(b){sum+=b.price_cents;var r=el("div","row"),l=el("div");l.appendChild(el("div","t",b.title));l.appendChild(el("div","m",(b.author||"")+" · "+money(b.price_cents)));r.appendChild(l);
@@ -167,15 +185,19 @@ function initials(n){return n.split(/\s+/).slice(0,2).map(function(w){return w[0
 function perfil(m){
  if(!st.user){m.appendChild(el("h2",null,"Perfil"));m.appendChild(el("p","m","Entre para ter seu perfil, anunciar livros e escrever resenhas."));
   m.appendChild(btn("Entrar","y",function(){authDlg("login")}));m.appendChild(document.createTextNode(" "));m.appendChild(btn("Criar conta","o",function(){authDlg("register")}));return}
- var u=st.user,me=el("div","me"),av=el("div","av",initials(u.name));av.style.background=u.avatar_color;me.appendChild(av);
+ var u=st.user,me=el("div","me"),av=el("div","av",u.avatar_at?null:initials(u.name));av.style.background=u.avatar_color;
+ if(u.avatar_at){var im=document.createElement("img");im.src="/api/me/avatar?v="+encodeURIComponent(u.avatar_at);im.alt="Sua foto de perfil";av.appendChild(im)}me.appendChild(av);
  var d=el("div");d.appendChild(el("div","t",u.name));d.appendChild(el("div","m",(u.pronoun?u.pronoun+" · ":"")+u.email));
  if(u.phone)d.appendChild(el("div","m",u.phone));if(u.address)d.appendChild(el("div","m",u.address));if(u.bio)d.appendChild(el("p",null,u.bio));me.appendChild(d);m.appendChild(me);
  m.appendChild(btn("Editar perfil","y",editProfile));m.appendChild(document.createTextNode(" "));
+ m.appendChild(btn("Trocar foto","o",function(){pickImage(function(f){upload("/me/avatar",f,400).then(loadMe).then(function(){toast("Foto atualizada")}).catch(function(e){toast(msg(e))})})}));m.appendChild(document.createTextNode(" "));
  m.appendChild(btn("Sair","o",function(){api("/auth/logout","POST").then(function(){st.user=null;st.cart=[];st.orders=[];st.mine=[];st.reviews=[];applyTheme();toast("Você saiu");go("home")})}));
  var h=el("h2",null,"livros");h.appendChild(btn("+ Anunciar / Doar","y",anunciar));m.appendChild(h);
  if(!st.mine.length)m.appendChild(el("p","m","Você ainda não anunciou nada."));
  st.mine.forEach(function(b){var r=el("div","row"),l=el("div");l.appendChild(el("div","t",b.title));l.appendChild(el("div","m",money(b.price_cents)+" · "+({available:"à venda",reserved:"reservado",sold:"vendido"}[b.status]||b.status)));r.appendChild(l);
-  if(b.status==="available")r.appendChild(btn("Remover","o",function(){api("/books/"+b.id,"DELETE").then(refresh).catch(function(e){toast(msg(e))})}));m.appendChild(r)});
+  if(b.status==="available"){var ab=el("div");
+   ab.appendChild(btn("Foto","o",function(){pickImage(function(f){upload("/books/"+b.id+"/photo",f,700).then(refresh).then(function(){toast("Foto salva")}).catch(function(e){toast(msg(e))})})}));
+   ab.appendChild(btn("Remover","o",function(){api("/books/"+b.id,"DELETE").then(refresh).catch(function(e){toast(msg(e))})}));r.appendChild(ab)}m.appendChild(r)});
  var h2=el("h2",null,"resenha");h2.appendChild(btn("+ Nova resenha","y",resenha));m.appendChild(h2);
  if(!st.reviews.length)m.appendChild(el("p","m","Escreva sua primeira resenha."));
  st.reviews.forEach(function(r){var w=el("div","row"),l=el("div");l.appendChild(el("div","t",r.book_title));l.appendChild(el("div","m",r.body));w.appendChild(l);m.appendChild(w)});
