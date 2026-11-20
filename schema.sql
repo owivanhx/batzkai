@@ -84,3 +84,17 @@ CREATE TABLE IF NOT EXISTS reviews (
   body       TEXT NOT NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- Fotos de perfil e dos livros (guardadas no próprio banco; o cliente já envia reduzidas)
+ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar    BYTEA;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_at TIMESTAMPTZ;
+ALTER TABLE books ADD COLUMN IF NOT EXISTS photo     BYTEA;
+ALTER TABLE books ADD COLUMN IF NOT EXISTS photo_at  TIMESTAMPTZ;
+
+-- Favoritos
+CREATE TABLE IF NOT EXISTS favorites (
+  user_id    BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  book_id    BIGINT NOT NULL REFERENCES books(id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  PRIMARY KEY (user_id, book_id)
+);
