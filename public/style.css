@@ -73,3 +73,27 @@ input,textarea{width:100%;padding:9px;border:2px solid var(--bd);border-radius:1
 .bm{width:84px;aspect-ratio:2/3;flex:none;border-radius:6px;padding:6px 5px;font:700 .72rem/1.15 "Playfair Display",Georgia,serif;text-align:center;color:#141414;box-shadow:0 4px 10px rgba(0,0,0,.25);overflow:hidden;position:relative}
 .bm.ph{padding:0}
 .basket-front{position:relative;z-index:2;height:104px;border:7px solid var(--bd);border-top-width:12px;border-radius:12px 12px 46px 46px;background-color:var(--surface);background-image:linear-gradient(to right,var(--mesh) 3px,transparent 3px),linear-gradient(to bottom,var(--mesh) 3px,transparent 3px);background-size:36px 32px}
+
+/* ---- Estilo marketplace ---- */
+@media (min-width:760px){.wrap{max-width:1100px}.grid{grid-template-columns:repeat(auto-fill,minmax(190px,1fr))}}
+.searchbar{display:flex;gap:8px;margin-bottom:12px}
+.searchbar input{flex:1;min-width:0;border-radius:999px;padding:11px 16px}
+.cats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px}
+.catb{background:var(--surface);border:2px solid var(--bd);border-radius:16px;padding:8px 4px;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:.8rem;font-weight:700}
+.catb.on{background:var(--royal);color:#fff;border-color:var(--royal)}
+.ci{font-size:1.6rem}
+.badges{position:absolute;left:6px;top:6px;display:flex;gap:4px}
+.badges .tag{margin:0;font-size:.68rem}
+.tag.don{background:var(--beak);color:#111}
+.heart{position:absolute;right:6px;top:6px;width:32px;height:32px;border-radius:50%;border:0;background:rgba(255,255,255,.92);color:#e63946;font-size:1.1rem;line-height:1;z-index:1}
+.cover{cursor:pointer}
+.bk h3{cursor:pointer}
+.slink{background:none;border:0;padding:0;text-align:left;color:var(--muted);font-size:.8rem;text-decoration:underline}
+.shop{font-weight:800;margin:14px 2px 6px}
+.pdp{display:grid;gap:18px;margin-top:14px}
+@media (min-width:760px){.pdp{grid-template-columns:340px 1fr}}
+.cover.big{height:380px;cursor:default;font-size:1.3rem}
+.pr.big{font-size:1.9rem}
+.specs{margin:12px 0}
+.spec{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid var(--line)}
+.ctas{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
