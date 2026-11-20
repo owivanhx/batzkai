@@ -22,7 +22,7 @@ const db = new Pool({ connectionString: process.env.DATABASE_URL });
 const app = express();
 app.set('trust proxy', 1);
 app.use(helmet({ contentSecurityPolicy: { useDefaults: true, directives: {
-  defaultSrc: ["'self'"], scriptSrc: ["'self'"], connectSrc: ["'self'"], imgSrc: ["'self'", 'data:'],
+  defaultSrc: ["'self'"], scriptSrc: ["'self'"], connectSrc: ["'self'"], imgSrc: ["'self'", 'data:', 'blob:'],
   styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'], fontSrc: ['https://fonts.gstatic.com'],
   objectSrc: ["'none'"], frameAncestors: ["'none'"], 'upgrade-insecure-requests': isProd ? [] : null } } }));
 app.use(cors({ origin: process.env.FRONTEND_URL || false, credentials: true }));
@@ -93,7 +93,7 @@ app.post('/api/me/become-seller', auth, need('buyer'), wrap(async (req, res) => 
 }));
 
 // ---------- Perfil e configurações (cada pessoa só enxerga e altera os próprios dados) ----------
-const ME_COLS = 'id,name,email,role,pronoun,phone,address,bio,avatar_color,settings';
+const ME_COLS = 'id,name,email,role,pronoun,phone,address,bio,avatar_color,avatar_at,settings';
 const profileSchema = z.object({
   name: z.string().trim().min(2).max(80),
   pronoun: z.string().trim().max(20).default(''),
@@ -155,16 +155,37 @@ const expireOrders = () => db.query(
   `WITH x AS (UPDATE book_orders SET status='cancelled' WHERE status='pending_payment' AND created_at < now() - interval '30 minutes' RETURNING id)
    UPDATE books SET status='available' WHERE status='reserved' AND id IN (SELECT book_id FROM book_order_items WHERE order_id IN (SELECT id FROM x))`);
 
+const BOOK_SELECT = `SELECT b.id,b.title,b.author,b.category,b.book_condition,b.description,b.price_cents,b.photo_at,b.created_at,b.seller_id,u.name AS seller,
+  (SELECT count(*)::int FROM books s WHERE s.seller_id=b.seller_id AND s.status='sold') AS seller_sold
+  FROM books b JOIN users u ON u.id=b.seller_id`;
+const SORTS = { new: 'b.created_at DESC', cheap: 'b.price_cents ASC, b.created_at DESC', dear: 'b.price_cents DESC, b.created_at DESC' };
+
+// Busca, categoria, ordenação e loja de um vendedor. A ordenação vem de uma lista fixa (nunca do texto do cliente).
 app.get('/api/books', wrap(async (req, res) => {
   await expireOrders();
   const cat = String(req.query.category || '').slice(0, 20), q = String(req.query.q || '').slice(0, 60);
-  const r = await db.query(
-    `SELECT b.id,b.title,b.author,b.category,b.book_condition,b.description,b.price_cents,b.seller_id,u.name AS seller
-       FROM books b JOIN users u ON u.id=b.seller_id
-      WHERE b.status='available' AND ($1='' OR b.category=$1) AND ($2='' OR b.title ILIKE '%'||$2||'%' OR b.author ILIKE '%'||$2||'%')
-      ORDER BY b.created_at DESC LIMIT 100`, [cat, q]);
+  const seller = Number(req.query.seller) || 0, order = SORTS[String(req.query.sort || '')] || SORTS.new;
+  const r = await db.query(BOOK_SELECT + ` WHERE b.status='available' AND ($1='' OR b.category=$1)
+      AND ($2='' OR b.title ILIKE '%'||$2||'%' OR b.author ILIKE '%'||$2||'%') AND ($3=0 OR b.seller_id=$3)
+      ORDER BY ${order} LIMIT 100`, [cat, q, seller]);
   res.json(r.rows);
 }));
+
+// ---------- Favoritos ----------
+app.get('/api/favorites', auth, wrap(async (req, res) => {
+  const r = await db.query(BOOK_SELECT + " JOIN favorites f ON f.book_id=b.id WHERE f.user_id=$1 AND b.status='available' ORDER BY f.created_at DESC", [req.user.id]);
+  res.json(r.rows);
+}));
+app.put('/api/favorites/:id', auth, wrap(async (req, res) => {
+  try { await db.query('INSERT INTO favorites(user_id,book_id) VALUES($1,$2) ON CONFLICT DO NOTHING', [req.user.id, id(req)]); }
+  catch (e) { if (e.code === '23503') return res.status(404).json({ error: 'Livro não encontrado.' }); throw e; }
+  res.json({ ok: true });
+}));
+app.delete('/api/favorites/:id', auth, wrap(async (req, res) => {
+  await db.query('DELETE FROM favorites WHERE user_id=$1 AND book_id=$2', [req.user.id, id(req)]);
+  res.json({ ok: true });
+}));
+
 
 app.post('/api/books', auth, wrap(async (req, res) => {
   const b = parse(bookSchema, req.body);
@@ -174,7 +195,7 @@ app.post('/api/books', auth, wrap(async (req, res) => {
 }));
 
 app.get('/api/me/books', auth, wrap(async (req, res) => {
-  const r = await db.query("SELECT id,title,author,category,book_condition,price_cents,status FROM books WHERE seller_id=$1 AND status<>'removed' ORDER BY id DESC", [req.user.id]);
+  const r = await db.query("SELECT id,title,author,category,book_condition,price_cents,photo_at,status FROM books WHERE seller_id=$1 AND status<>'removed' ORDER BY id DESC", [req.user.id]);
   res.json(r.rows);
 }));
 
@@ -184,10 +205,37 @@ app.delete('/api/books/:id', auth, wrap(async (req, res) => {
   r.rowCount ? res.json({ ok: true }) : res.status(404).json({ error: 'Livro não encontrado ou já reservado.' });
 }));
 
+// ---------- Fotos (JPEG reduzido pelo navegador, guardado no banco) ----------
+const imgBody = express.raw({ type: 'image/jpeg', limit: '300kb' });
+const isJpeg = (b) => Buffer.isBuffer(b) && b.length > 100 && b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff; // confere o formato de verdade
+const sendImg = (res, buf, cache) => res.set({ 'Content-Type': 'image/jpeg', 'Cache-Control': cache }).send(buf);
+
+app.put('/api/me/avatar', auth, imgBody, wrap(async (req, res) => {
+  if (!isJpeg(req.body)) return res.status(400).json({ error: 'Envie uma imagem válida.' });
+  await db.query('UPDATE users SET avatar=$1, avatar_at=now() WHERE id=$2', [req.body, req.user.id]);
+  res.json({ ok: true });
+}));
+// A foto de perfil só pode ser vista pela própria pessoa.
+app.get('/api/me/avatar', auth, wrap(async (req, res) => {
+  const r = await db.query('SELECT avatar FROM users WHERE id=$1', [req.user.id]);
+  if (!r.rows[0] || !r.rows[0].avatar) return res.sendStatus(404);
+  sendImg(res, r.rows[0].avatar, 'private, max-age=86400');
+}));
+app.put('/api/books/:id/photo', auth, imgBody, wrap(async (req, res) => {
+  if (!isJpeg(req.body)) return res.status(400).json({ error: 'Envie uma imagem válida.' });
+  const r = await db.query("UPDATE books SET photo=$1, photo_at=now() WHERE id=$2 AND seller_id=$3 AND status='available' RETURNING id", [req.body, id(req), req.user.id]);
+  r.rowCount ? res.json({ ok: true }) : res.status(404).json({ error: 'Livro não encontrado.' });
+}));
+app.get('/api/books/:id/photo', wrap(async (req, res) => {
+  const r = await db.query("SELECT photo FROM books WHERE id=$1 AND status<>'removed'", [id(req)]);
+  if (!r.rows[0] || !r.rows[0].photo) return res.sendStatus(404);
+  sendImg(res, r.rows[0].photo, 'public, max-age=86400');
+}));
+
 // ---------- Cestinha (fica salva na conta) ----------
 app.get('/api/cart', auth, wrap(async (req, res) => {
   const r = await db.query(
-    `SELECT b.id,b.title,b.author,b.price_cents,u.name AS seller FROM cart_items c JOIN books b ON b.id=c.book_id JOIN users u ON u.id=b.seller_id
+    `SELECT b.id,b.title,b.author,b.price_cents,b.photo_at,u.name AS seller FROM cart_items c JOIN books b ON b.id=c.book_id JOIN users u ON u.id=b.seller_id
       WHERE c.user_id=$1 AND b.status='available' ORDER BY b.id`, [req.user.id]);
   res.json(r.rows);
 }));
